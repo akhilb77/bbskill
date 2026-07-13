@@ -1,0 +1,57 @@
+import fs from "node:fs";
+import path from "node:path";
+import { execFileSync } from "node:child_process";
+import ora from "ora";
+import { logger } from "../utils/logger.js";
+import { copyDir, makeTempDir, removeDir } from "../utils/fs.js";
+import { validateSkill } from "../services/validator.js";
+import { storeRepo } from "../config.js";
+/**
+ * Publish a local skill folder to the skill store: validate it, clone the
+ * store repo, copy the skill in as `<repo>/<name>/`, commit, and push.
+ * Push auth rides on the user's existing git credentials (HTTPS).
+ */
+export async function uploadCommand(dir, opts) {
+    const spinner = ora();
+    let tmp;
+    try {
+        const skill = validateSkill(path.resolve(dir));
+        const name = skill.manifest.name;
+        const repoUrl = `https://github.com/${storeRepo()}.git`;
+        spinner.start(`Cloning ${storeRepo()}…`);
+        tmp = makeTempDir();
+        const clone = path.join(tmp, "store");
+        git(["clone", "--depth", "1", repoUrl, clone], tmp);
+        const dest = path.join(clone, name);
+        const existed = fs.existsSync(dest);
+        if (existed) {
+            if (!opts.force) {
+                throw new Error(`"${name}" already exists in ${storeRepo()}. Use --force to overwrite.`);
+            }
+            removeDir(dest);
+        }
+        spinner.text = `Uploading ${name}…`;
+        copyDir(skill.path, dest);
+        git(["add", "-A"], clone);
+        if (!git(["status", "--porcelain"], clone).trim()) {
+            spinner.succeed(`${name} is already up to date in ${storeRepo()}`);
+            return;
+        }
+        git(["commit", "-m", `${existed ? "Update" : "Add"} ${name}`], clone);
+        git(["push"], clone);
+        spinner.succeed(`Uploaded ${name} to ${storeRepo()}`);
+        logger.dim(`  install with: bbskill install ${name}`);
+    }
+    catch (err) {
+        spinner.fail("Upload failed");
+        logger.error(err.message);
+        process.exitCode = 1;
+    }
+    finally {
+        if (tmp)
+            removeDir(tmp);
+    }
+}
+function git(args, cwd) {
+    return execFileSync("git", args, { cwd, encoding: "utf8", stdio: "pipe" });
+}
