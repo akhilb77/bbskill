@@ -46,7 +46,8 @@ program
 
 program
   .command("list")
-  .description("List installed skills")
+  .argument("[where]", '"org" to list skills available in the org store')
+  .description("List installed skills, or the org store's skills with `list org`")
   .action(listCommand);
 
 program

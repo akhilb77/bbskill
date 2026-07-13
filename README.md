@@ -28,6 +28,7 @@ bbskill sync                  # update installed skills from the store
 bbskill sync --all            # also install store skills you don't have yet
 bbskill remove <name>         # uninstall a skill
 bbskill list                  # list installed skills
+bbskill list org              # list skills available in the org store
 bbskill info <name>           # show a skill's details
 bbskill doctor                # check the local environment
 bbskill version
