@@ -2,7 +2,15 @@
 
 Internal CLI for installing and managing [Claude Code Skills](https://code.claude.com/docs/en/skills.md). Skills are installed into `~/.claude/skills`, where Claude Code discovers them automatically.
 
-## Setup
+## Install
+
+```bash
+npm install -g https://github.com/akhilb77/bbskill/archive/refs/heads/main.tar.gz
+```
+
+Re-run the same command to update. (Use the tarball URL, not `github:akhilb77/bbskill` — npm on Windows has a bug installing global git deps.)
+
+## Development setup
 
 ```bash
 npm install
