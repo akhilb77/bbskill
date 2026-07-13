@@ -6,6 +6,7 @@ import { logger } from "../utils/logger.js";
 import { copyDir, makeTempDir, removeDir } from "../utils/fs.js";
 import { validateSkill } from "../services/validator.js";
 import { storeRepo } from "../config.js";
+import { skillsDir } from "../utils/paths.js";
 
 /**
  * Publish a local skill folder to the skill store: validate it, clone the
@@ -20,7 +21,13 @@ export async function uploadCommand(
   let tmp: string | undefined;
 
   try {
-    const skill = validateSkill(path.resolve(dir));
+    // A bare name that isn't a local folder falls back to the installed skill.
+    let src = path.resolve(dir);
+    if (!fs.existsSync(src) && fs.existsSync(path.join(skillsDir(), dir))) {
+      src = path.join(skillsDir(), dir);
+      logger.dim(`  (using installed skill at ${src})`);
+    }
+    const skill = validateSkill(src);
     const name = skill.manifest.name;
     const repoUrl = `https://github.com/${storeRepo()}.git`;
 
