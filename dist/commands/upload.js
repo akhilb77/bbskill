@@ -7,6 +7,7 @@ import { copyDir, makeTempDir, removeDir } from "../utils/fs.js";
 import { validateSkill } from "../services/validator.js";
 import { storeRepo } from "../config.js";
 import { skillsDir } from "../utils/paths.js";
+import { getToken } from "../utils/auth.js";
 /**
  * Publish a local skill folder to the skill store: validate it, clone the
  * store repo, copy the skill in as `<repo>/<name>/`, commit, and push.
@@ -23,7 +24,12 @@ export async function uploadCommand(dir, opts) {
         }
         const skill = validateSkill(src);
         const name = skill.manifest.name;
-        const repoUrl = `https://github.com/${storeRepo()}.git`;
+        // With a saved bbskill token, push over HTTPS with it directly so git
+        // never prompts for a login. Without one, fall back to git's own auth.
+        const token = getToken();
+        const repoUrl = token
+            ? `https://x-access-token:${token}@github.com/${storeRepo()}.git`
+            : `https://github.com/${storeRepo()}.git`;
         spinner.start(`Cloning ${storeRepo()}…`);
         tmp = makeTempDir();
         const clone = path.join(tmp, "store");
