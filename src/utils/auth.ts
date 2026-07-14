@@ -35,7 +35,10 @@ export async function promptToken(reason: string): Promise<string> {
   if (wasSpinning) spinner.stop();
 
   logger.info(reason);
-  logger.dim("  Create one at https://github.com/settings/tokens (repo read access).");
+  logger.dim(
+    '  Create one at https://github.com/settings/tokens — "repo" scope',
+  );
+  logger.dim("  (read is enough to install; uploading needs write).");
   const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
   const token = (await rl.question("Paste your GitHub token: ")).trim();
   rl.close();
