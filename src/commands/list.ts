@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import chalk from "chalk";
-import ora from "ora";
+import { spinner } from "../utils/spinner.js";
 import { logger } from "../utils/logger.js";
 import { skillsDir } from "../utils/paths.js";
 import { listDirs, findSkillMd, readFrontmatter, removeDir } from "../utils/fs.js";
@@ -35,7 +35,7 @@ export async function listCommand(where?: string): Promise<void> {
 
 /** List skills available in the org store repo, marking the ones already installed. */
 async function listOrg(): Promise<void> {
-  const spinner = ora();
+  
   let root: string | undefined;
   try {
     spinner.start(`Fetching ${storeRepo()}…`);

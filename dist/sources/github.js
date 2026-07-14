@@ -1,6 +1,7 @@
 import axios from "axios";
 import AdmZip from "adm-zip";
 import { makeTempDir } from "../utils/fs.js";
+import { getToken, promptToken } from "../utils/auth.js";
 /**
  * Downloads a GitHub repository archive (zipball of the default branch) and
  * extracts it. GitHub's `/zipball` endpoint follows the default branch and
@@ -11,24 +12,48 @@ export class GitHubSource {
     async fetch(url) {
         const { owner, repo } = parseRepoUrl(url);
         const zipUrl = `https://api.github.com/repos/${owner}/${repo}/zipball`;
-        const res = await axios.get(zipUrl, {
-            responseType: "arraybuffer",
-            // GitHub requires a UA; token is optional but lifts the rate limit.
-            headers: {
-                "User-Agent": "bbskill-cli",
-                ...(process.env.GITHUB_TOKEN
-                    ? { Authorization: `Bearer ${process.env.GITHUB_TOKEN}` }
-                    : {}),
-            },
-        });
+        const token = getToken();
+        let data;
+        try {
+            data = await download(zipUrl, token);
+        }
+        catch (err) {
+            const status = err.response?.status;
+            // 401 = bad/expired token. 404 without a token is how GitHub reports a
+            // private repo to anonymous callers. Ask once, save, and retry; any
+            // other failure is real and propagates.
+            let fresh;
+            if (status === 401 && token) {
+                fresh = await promptToken("Your saved GitHub token was rejected (expired?).");
+            }
+            else if ((status === 404 || status === 401) && !token) {
+                fresh = await promptToken(`Could not reach ${owner}/${repo} — if it's private, a GitHub token is needed.`);
+            }
+            else {
+                throw err;
+            }
+            data = await download(zipUrl, fresh);
+        }
         const dest = makeTempDir();
-        const zip = new AdmZip(Buffer.from(res.data));
+        const zip = new AdmZip(Buffer.from(data));
         zip.extractAllTo(dest, true);
         // Returns the temp root. The zipball wraps files in an `owner-repo-<sha>/`
         // folder, but the validator locates SKILL.md recursively, so callers only
         // need this one path to both use and clean up.
         return dest;
     }
+}
+async function download(zipUrl, token) {
+    const res = await axios.get(zipUrl, {
+        responseType: "arraybuffer",
+        // GitHub requires a UA; the token (when present) unlocks private repos
+        // and lifts the anonymous rate limit.
+        headers: {
+            "User-Agent": "bbskill-cli",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+    });
+    return res.data;
 }
 /** Accepts `https://github.com/owner/repo(.git)?` and `owner/repo`. */
 export function parseRepoUrl(input) {

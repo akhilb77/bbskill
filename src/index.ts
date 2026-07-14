@@ -8,6 +8,7 @@ import { infoCommand } from "./commands/info.js";
 import { doctorCommand } from "./commands/doctor.js";
 import { uploadCommand } from "./commands/upload.js";
 import { syncCommand } from "./commands/sync.js";
+import { loginCommand } from "./commands/login.js";
 
 const { version } = createRequire(import.meta.url)("../package.json");
 
@@ -55,6 +56,11 @@ program
   .argument("<name>", "installed skill name")
   .description("Show details about an installed skill")
   .action(infoCommand);
+
+program
+  .command("login")
+  .description("Save a GitHub token for private-repo access (asked again only when it expires)")
+  .action(loginCommand);
 
 program
   .command("doctor")

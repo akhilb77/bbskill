@@ -1,4 +1,4 @@
-import ora from "ora";
+import { spinner } from "../utils/spinner.js";
 import { logger } from "../utils/logger.js";
 import { removeDir } from "../utils/fs.js";
 import { resolveSource } from "../sources/resolve.js";
@@ -9,7 +9,7 @@ export async function installCommand(
   ref: string,
   opts: { force?: boolean }
 ): Promise<void> {
-  const spinner = ora();
+  
   let staged: string | undefined;
 
   try {

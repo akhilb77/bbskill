@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { execFileSync } from "node:child_process";
-import ora from "ora";
+import { spinner } from "../utils/spinner.js";
 import { logger } from "../utils/logger.js";
 import { copyDir, makeTempDir, removeDir } from "../utils/fs.js";
 import { validateSkill } from "../services/validator.js";
@@ -13,7 +13,6 @@ import { skillsDir } from "../utils/paths.js";
  * Push auth rides on the user's existing git credentials (HTTPS).
  */
 export async function uploadCommand(dir, opts) {
-    const spinner = ora();
     let tmp;
     try {
         // A bare name that isn't a local folder falls back to the installed skill.

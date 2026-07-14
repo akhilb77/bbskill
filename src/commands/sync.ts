@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import ora from "ora";
+import { spinner } from "../utils/spinner.js";
 import { logger } from "../utils/logger.js";
 import { GitHubSource } from "../sources/github.js";
 import { storeRepo } from "../config.js";
@@ -16,7 +16,7 @@ import { listDirs, removeDir } from "../utils/fs.js";
  * Skills installed from other sources (not in the store) are left untouched.
  */
 export async function syncCommand(opts: { all?: boolean }): Promise<void> {
-  const spinner = ora();
+  
   let root: string | undefined;
 
   try {

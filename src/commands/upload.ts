@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { execFileSync } from "node:child_process";
-import ora from "ora";
+import { spinner } from "../utils/spinner.js";
 import { logger } from "../utils/logger.js";
 import { copyDir, makeTempDir, removeDir } from "../utils/fs.js";
 import { validateSkill } from "../services/validator.js";
@@ -17,7 +17,7 @@ export async function uploadCommand(
   dir: string,
   opts: { force?: boolean }
 ): Promise<void> {
-  const spinner = ora();
+  
   let tmp: string | undefined;
 
   try {

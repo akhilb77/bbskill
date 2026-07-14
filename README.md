@@ -31,6 +31,7 @@ bbskill list                  # list installed skills
 bbskill list org              # list skills available in the org store
 bbskill info <name>           # show a skill's details
 bbskill doctor                # check the local environment
+bbskill login                 # save a GitHub token (needed only for private repos)
 bbskill version
 ```
 
@@ -43,6 +44,14 @@ The default store is set in `src/config.ts`; override it per machine with:
 ```bash
 BBSKILL_REPO=your-org/claude-skills
 ```
+
+## Private repos
+
+Public repos need no setup. If the store (or another skill repo) is private,
+the CLI prompts for a GitHub token on first use, saves it to
+`~/.bbskill/config.json`, and asks again only if it stops working (e.g.
+expired). You can also run `bbskill login` up front, or set a `GITHUB_TOKEN`
+env var (which takes precedence). Uploads use your normal git credentials.
 
 ## Architecture
 

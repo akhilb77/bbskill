@@ -1,11 +1,10 @@
-import ora from "ora";
+import { spinner } from "../utils/spinner.js";
 import { logger } from "../utils/logger.js";
 import { removeDir } from "../utils/fs.js";
 import { resolveSource } from "../sources/resolve.js";
 import { validateSkill } from "../services/validator.js";
 import { installSkill } from "../services/installer.js";
 export async function installCommand(ref, opts) {
-    const spinner = ora();
     let staged;
     try {
         const source = resolveSource(ref);
