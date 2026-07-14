@@ -1,17 +1,40 @@
 import axios from "axios";
 import { logger } from "../utils/logger.js";
 import { promptToken, getToken } from "../utils/auth.js";
-/** Prompt for a GitHub token, save it, and verify it against the API. */
-export async function loginCommand() {
+/**
+ * If a working token is already saved, just report who you are. Otherwise
+ * (no token, or a rejected one) prompt, save, and verify.
+ */
+export async function loginCommand(opts) {
     try {
-        await promptToken(getToken() ? "Replacing your saved GitHub token." : "Log in to GitHub.");
-        const res = await axios.get("https://api.github.com/user", {
-            headers: { "User-Agent": "bbskill-cli", Authorization: `Bearer ${getToken()}` },
-        });
-        logger.success(`Logged in as ${res.data.login}`);
+        if (!opts.force && getToken()) {
+            const user = await whoami();
+            if (user) {
+                logger.success(`Already logged in as ${user}`);
+                logger.dim("  (use bbskill login --force to switch tokens)");
+                return;
+            }
+            logger.warn("Your saved token no longer works.");
+        }
+        await promptToken(opts.force ? "Replacing your saved GitHub token." : "Log in to GitHub.");
+        const user = await whoami();
+        if (!user)
+            throw new Error("GitHub rejected that token.");
+        logger.success(`Logged in as ${user}`);
     }
     catch (err) {
         logger.error(err.message);
         process.exitCode = 1;
+    }
+}
+async function whoami() {
+    try {
+        const res = await axios.get("https://api.github.com/user", {
+            headers: { "User-Agent": "bbskill-cli", Authorization: `Bearer ${getToken()}` },
+        });
+        return res.data.login;
+    }
+    catch {
+        return null;
     }
 }

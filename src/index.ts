@@ -59,6 +59,7 @@ program
 
 program
   .command("login")
+  .option("-f, --force", "replace the saved token even if it still works")
   .description("Save a GitHub token for private-repo access (asked again only when it expires)")
   .action(loginCommand);
 
